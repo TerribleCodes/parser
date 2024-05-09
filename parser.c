@@ -15,10 +15,61 @@ typedef struct {
 Symbol symbolTable[256]; // Array Data structure
 int symbolCount = 0;
 
+void parseE(char **input, int level);
+void parseT(char **input, int level);
+void parseF(char **input, int level);
 void addSymbol(char *id, Token token);
 Token getNextToken(char **input);
 void printSymbolTable();
 void printIndent(int level);
+
+void parseE(char **input, int level) {
+    parseT(input, level);
+    while (**input == '+') {
+        getNextToken(input);
+        printf("\n");
+        printIndent(level);
+        printf("+");
+        parseT(input, level + 1);
+    }
+}
+
+void parseT(char **input, int level) {
+    parseF(input, level);
+    while (**input == '*') {
+        getNextToken(input);
+        printf("\n");
+        printIndent(level);
+        printf("*");
+        parseF(input, level + 1);
+    }
+}
+
+void parseF(char **input, int level) {
+    if (**input == '(') {
+        getNextToken(input);
+        printf("\n");
+        printIndent(level);
+        printf("(");
+        parseE(input, level + 1);
+        if (**input == ')') {
+            getNextToken(input);
+            printf("\n");
+            printIndent(level);
+            printf(")");
+        } else {
+            printf("Error: expected ')'\n");
+            exit(1);
+        }
+    } else if (getNextToken(input) == ID) {
+        printf("\n");
+        printIndent(level);
+        printf("id: %s", symbolTable[symbolCount - 1].id);
+    } else {
+        printf("Error: expected identifier or '('\n");
+        exit(1);
+    }
+}
 
 void addSymbol(char *id, Token token) {
     strncpy(symbolTable[symbolCount].id, id, idLength);
@@ -103,12 +154,12 @@ int main() {
         return 1;
     }
 
-    /*parseE(&p, 0);
+    parseE(&p, 0);
     if (*p == '\0') {
         printf("\nInput is valid\n");
     } else {
         printf("\nError: unexpected character '%c'\n", *p);       
     }
-    printSymbolTable();*/
+    printSymbolTable();
     return 0;
 }
